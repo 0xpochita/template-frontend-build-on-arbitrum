@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
+import { useAccount } from "wagmi";
 import { SuccessDialog } from "@/components/rwa/success-dialog";
 import { useRwa } from "@/providers/rwa-provider";
 
@@ -16,6 +17,7 @@ const NAV_ITEMS = [
 export function Shell({ children }: { children: ReactNode }) {
   const { receipt, clearReceipt } = useRwa();
   const pathname = usePathname();
+  const { chain } = useAccount();
 
   return (
     <div className="min-h-screen bg-canvas font-sans text-ink">
@@ -49,11 +51,25 @@ export function Shell({ children }: { children: ReactNode }) {
             ))}
           </nav>
 
-          <ConnectButton
-            chainStatus="icon"
-            accountStatus="address"
-            showBalance={false}
-          />
+          <div className="flex items-center gap-2">
+            {chain ? (
+              <span className="flex items-center gap-2 rounded-xl bg-white px-3.5 py-2.5 text-sm font-semibold shadow-sm">
+                <Image
+                  src="/assets/logo-arb.svg"
+                  alt=""
+                  width={20}
+                  height={20}
+                  className="h-5 w-5"
+                />
+                {chain.name}
+              </span>
+            ) : null}
+            <ConnectButton
+              chainStatus="icon"
+              accountStatus="address"
+              showBalance={false}
+            />
+          </div>
         </div>
       </header>
 
