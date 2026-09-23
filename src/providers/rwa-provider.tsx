@@ -146,7 +146,7 @@ export function RwaProvider({ children }: { children: ReactNode }) {
   }, [cooldownEnds]);
 
   const run = async (
-    draft: Pick<TxRecord, "kind" | "title" | "detail">,
+    draft: Omit<TxRecord, "id" | "hash" | "timestamp">,
     send: () => Promise<Hash>,
   ) => {
     setMessage("");
@@ -181,6 +181,8 @@ export function RwaProvider({ children }: { children: ReactNode }) {
         kind: "buy",
         title: "Buy Fractions",
         detail: `${amount} Fractions · ${formatEth(amount * toEth(fractionPrice))}`,
+        fractions: amount,
+        eth: amount * toEth(fractionPrice),
       },
       () => buy.buyFractions(BigInt(amount), fractionPrice),
     );
@@ -191,6 +193,7 @@ export function RwaProvider({ children }: { children: ReactNode }) {
         kind: "restock",
         title: "Restock",
         detail: `${amount} Fractions added to supply`,
+        fractions: amount,
       },
       () => restock.restockFractions(BigInt(amount)),
     );
@@ -201,6 +204,7 @@ export function RwaProvider({ children }: { children: ReactNode }) {
         kind: "withdraw",
         title: "Withdraw",
         detail: `${formatEth(toEth(contractBalance))} withdrawn to owner`,
+        eth: toEth(contractBalance),
       },
       withdraw.withdrawFunds,
     );

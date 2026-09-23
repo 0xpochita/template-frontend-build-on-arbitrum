@@ -15,6 +15,8 @@ export type TxRecord = {
   kind: TxKind;
   title: string;
   detail: string;
+  fractions?: number;
+  eth?: number;
   hash: string;
   timestamp: number;
 };
@@ -29,3 +31,13 @@ export const formatTime = (timestamp: number) =>
     hour: "2-digit",
     minute: "2-digit",
   });
+
+const matchNumber = (text: string, pattern: RegExp) => {
+  const match = text.match(pattern);
+  return match ? Number(match[1]) : undefined;
+};
+
+export const txAmounts = (tx: TxRecord) => ({
+  fractions: tx.fractions ?? matchNumber(tx.detail, /(\d+) Fractions/),
+  eth: tx.eth ?? matchNumber(tx.detail, /([\d.]+) ETH/),
+});

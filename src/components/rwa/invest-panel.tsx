@@ -122,8 +122,15 @@ export function InvestPanel({
         </h3>
         <span className="flex items-center overflow-hidden rounded-full bg-canvas text-xs font-semibold">
           <span className="px-3 py-2 text-ink/55">Balance</span>
-          <span className="border-l border-ink/10 px-3 py-2">
+          <span className="flex items-center gap-1.5 border-l border-ink/10 px-3 py-2">
             {connected ? `${walletBalance.toFixed(4)} ETH` : "—"}
+            <Image
+              src="/assets/eth-logo.svg"
+              alt=""
+              width={16}
+              height={16}
+              className="h-4 w-4"
+            />
           </span>
         </span>
       </div>

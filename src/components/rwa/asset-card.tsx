@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { Card, ExternalIcon, Stat } from "@/components/ui";
-import { formatEth, ipfsUrl, NETWORK_NAME } from "@/lib/rwa";
+import { formatEth, ipfsUrl } from "@/lib/rwa";
 import type { PropertyView } from "@/providers/rwa-provider";
 
 export function AssetCard({ property }: { property: PropertyView }) {
@@ -24,17 +24,15 @@ export function AssetCard({ property }: { property: PropertyView }) {
       </div>
 
       <div className="relative grid h-44 place-items-center overflow-hidden rounded-[22px] bg-lilac">
+        <span className="absolute h-36 w-36 rounded-full bg-white/40" />
         <Image
           src="/assets/3d-bangunan.png"
           alt={property.name}
           width={1371}
           height={1147}
           priority
-          className="h-32 w-auto object-contain"
+          className="relative h-32 w-auto object-contain"
         />
-        <span className="absolute bottom-4 left-4 rounded-full bg-white/80 px-3 py-1.5 text-xs font-semibold">
-          {NETWORK_NAME}
-        </span>
       </div>
 
       <div className="flex flex-col gap-3">

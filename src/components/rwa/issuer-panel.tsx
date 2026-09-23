@@ -22,19 +22,9 @@ export function IssuerPanel({
       tone="ink"
       className="flex flex-col gap-7 border border-dashed border-canvas/30 p-7"
     >
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-canvas/50">
-            Asset Issuer Dashboard
-          </p>
-          <h3 className="mt-3 text-2xl font-semibold tracking-tight">
-            🔒 Contract Owner Panel
-          </h3>
-        </div>
-        <span className="rounded-full bg-canvas/15 px-4 py-2 text-xs font-semibold">
-          onlyOwner
-        </span>
-      </div>
+      <h3 className="text-2xl font-semibold tracking-tight">
+        Contract Owner Panel
+      </h3>
 
       <div className="grid gap-4 md:grid-cols-2">
         <div className="flex flex-col gap-5 rounded-[22px] bg-canvas/10 p-6">

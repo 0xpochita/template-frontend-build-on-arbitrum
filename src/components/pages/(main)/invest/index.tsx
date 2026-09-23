@@ -2,7 +2,6 @@
 
 import { AssetCard } from "@/components/rwa/asset-card";
 import { InvestPanel } from "@/components/rwa/invest-panel";
-import { IssuerPanel } from "@/components/rwa/issuer-panel";
 import { TxHistory } from "@/components/rwa/tx-history";
 import { useRwa } from "@/providers/rwa-provider";
 
@@ -10,17 +9,13 @@ export default function InvestPage() {
   const {
     property,
     isConnected,
-    isOwner,
     owned,
     walletBalance,
     busy,
     cooldown,
     status,
-    contractBalance,
     transactions,
     buyFractions,
-    restockFractions,
-    withdrawFunds,
   } = useRwa();
 
   return (
@@ -45,15 +40,6 @@ export default function InvestPage() {
       </div>
 
       <TxHistory transactions={transactions} connected={isConnected} />
-
-      {isOwner ? (
-        <IssuerPanel
-          contractBalance={contractBalance}
-          busy={busy}
-          onRestock={restockFractions}
-          onWithdraw={withdrawFunds}
-        />
-      ) : null}
     </div>
   );
 }

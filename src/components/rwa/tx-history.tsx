@@ -1,21 +1,57 @@
 "use client";
 
 import { useConnectModal } from "@rainbow-me/rainbowkit";
+import Image from "next/image";
 import { Button, Card, ExternalIcon } from "@/components/ui";
 import {
   explorerTxUrl,
+  formatEth,
   formatTime,
   NETWORK_NAME,
   shortenHex,
-  type TxKind,
   type TxRecord,
+  txAmounts,
 } from "@/lib/rwa";
 
-const kindStyles: Record<TxKind, string> = {
-  buy: "bg-blossom",
-  restock: "bg-butter",
-  withdraw: "bg-mint",
-};
+function TxAmount({ tx }: { tx: TxRecord }) {
+  const { fractions, eth } = txAmounts(tx);
+
+  if (fractions === undefined && eth === undefined) {
+    return <>{tx.detail}</>;
+  }
+
+  return (
+    <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+      {fractions !== undefined ? (
+        <span className="flex items-center gap-1.5">
+          <Image
+            src="/assets/3d-bangunan.png"
+            alt=""
+            width={1371}
+            height={1147}
+            className="h-5 w-auto object-contain"
+          />
+          {fractions} Fractions
+        </span>
+      ) : null}
+      {fractions !== undefined && eth !== undefined ? (
+        <span className="text-ink/30">·</span>
+      ) : null}
+      {eth !== undefined ? (
+        <span className="flex items-center gap-1.5">
+          <Image
+            src="/assets/eth-logo.svg"
+            alt=""
+            width={16}
+            height={16}
+            className="h-4 w-4"
+          />
+          {formatEth(eth)}
+        </span>
+      ) : null}
+    </span>
+  );
+}
 
 function EmptyState({ connected }: { connected: boolean }) {
   const { openConnectModal } = useConnectModal();
@@ -63,12 +99,9 @@ export function TxHistory({
                 className="flex flex-wrap items-center justify-between gap-4 rounded-[22px] bg-canvas px-5 py-4 transition-colors hover:bg-blossom-soft/50"
               >
                 <span className="flex items-center gap-4">
-                  <span
-                    className={`h-2 w-2 shrink-0 rounded-full ${kindStyles[tx.kind]}`}
-                  />
                   <span>
                     <span className="block text-sm font-semibold">
-                      {tx.detail}
+                      <TxAmount tx={tx} />
                     </span>
                     <span className="block text-xs text-ink/45">
                       {tx.title} · {formatTime(tx.timestamp)} · {NETWORK_NAME}

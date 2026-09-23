@@ -1,13 +1,25 @@
 "use client";
 
 import Image from "next/image";
+import { IssuerPanel } from "@/components/rwa/issuer-panel";
 import { TxHistory } from "@/components/rwa/tx-history";
 import { Card, Stat } from "@/components/ui";
 import { formatEth, shortenHex } from "@/lib/rwa";
 import { useRwa } from "@/providers/rwa-provider";
 
 export default function PortfolioPage() {
-  const { address, isConnected, property, owned, transactions } = useRwa();
+  const {
+    address,
+    isConnected,
+    isOwner,
+    property,
+    owned,
+    transactions,
+    busy,
+    contractBalance,
+    restockFractions,
+    withdrawFunds,
+  } = useRwa();
 
   const value = owned * property.price;
   const ownership = property.total
@@ -16,6 +28,15 @@ export default function PortfolioPage() {
 
   return (
     <div className="flex flex-col gap-6">
+      {isOwner ? (
+        <IssuerPanel
+          contractBalance={contractBalance}
+          busy={busy}
+          onRestock={restockFractions}
+          onWithdraw={withdrawFunds}
+        />
+      ) : null}
+
       <Card className="flex flex-col gap-6 p-7">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <h3 className="text-2xl font-semibold tracking-tight">My Assets</h3>
