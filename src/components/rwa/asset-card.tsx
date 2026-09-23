@@ -18,9 +18,6 @@ export function AssetCard({ property }: { property: PropertyView }) {
           </h2>
           <p className="mt-2 text-sm text-ink/55">{property.symbol}</p>
         </div>
-        <span className="shrink-0 rounded-full bg-mint px-4 py-2 text-xs font-semibold">
-          Verified RWA
-        </span>
       </div>
 
       <div className="relative grid h-44 place-items-center overflow-hidden rounded-[22px] bg-lilac">

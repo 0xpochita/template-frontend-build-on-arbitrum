@@ -6,7 +6,7 @@ export const explorerTxUrl = (hash: string) =>
   `${arbitrumSepolia.blockExplorers.default.url}/tx/${hash}`;
 
 export const ipfsUrl = (uri: string) =>
-  uri.replace("ipfs://", "https://ipfs.io/ipfs/");
+  uri.replace("ipfs://", "https://gateway.pinata.cloud/ipfs/");
 
 export type TxKind = "buy" | "restock" | "withdraw";
 
