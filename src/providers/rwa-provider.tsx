@@ -44,6 +44,7 @@ export type PropertyView = {
   available: number;
   total: number;
   price: number;
+  priceWei: bigint;
 };
 
 type RwaStore = {
@@ -219,6 +220,7 @@ export function RwaProvider({ children }: { children: ReactNode }) {
           available: Number(availableFractions),
           total: Number(totalFractions),
           price: toEth(fractionPrice),
+          priceWei: fractionPrice,
         },
         owned: Number(ownedFractions),
         walletBalance: toEth(walletBalance),

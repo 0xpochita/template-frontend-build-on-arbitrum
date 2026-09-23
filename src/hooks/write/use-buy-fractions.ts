@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useConfig, useWriteContract } from "wagmi";
 import { waitForTransactionReceipt } from "wagmi/actions";
 import { fractionalProperty } from "@/lib/web3/contracts";
+import { getGasFees } from "@/lib/web3/gas";
 
 export function useBuyFractions() {
   const config = useConfig();
@@ -11,8 +12,11 @@ export function useBuyFractions() {
   const [isConfirming, setIsConfirming] = useState(false);
 
   const buyFractions = async (amount: bigint, fractionPrice: bigint) => {
+    const fees = await getGasFees(config);
+
     const hash = await writeContractAsync({
       ...fractionalProperty,
+      ...fees,
       functionName: "buyFractions",
       args: [amount],
       value: amount * fractionPrice,

@@ -3,12 +3,29 @@
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import Image from "next/image";
 import { useState } from "react";
+import { formatEther, parseEther } from "viem";
 import { Button, Card, Chip } from "@/components/ui";
 import { formatEth } from "@/lib/rwa";
 import type { PropertyView } from "@/providers/rwa-provider";
 
-const PRESETS = [1, 5, 10];
+const PRESET_FRACTIONS = [1, 5, 10];
 const GAS_RESERVE = 0.0001;
+
+const sanitizeEth = (raw: string) => {
+  const [whole, ...decimals] = raw
+    .replace(/,/g, ".")
+    .replace(/[^\d.]/g, "")
+    .split(".");
+  return decimals.length ? `${whole}.${decimals.join("").slice(0, 18)}` : whole;
+};
+
+const toWei = (value: string) => {
+  try {
+    return parseEther(value || "0");
+  } catch {
+    return 0n;
+  }
+};
 
 function StepperButton({
   label,
@@ -59,26 +76,30 @@ export function InvestPanel({
   busy: boolean;
   cooldown: number;
   status: string;
-  onBuy: (amount: number) => void;
+  onBuy: (fractions: number) => void;
 }) {
-  const [input, setInput] = useState("5");
+  const [input, setInput] = useState("0.001");
   const { openConnectModal } = useConnectModal();
 
-  const { available } = property;
+  const { available, priceWei } = property;
+  const fractions = priceWei ? Number(toWei(input) / priceWei) : 0;
+  const total = fractions * property.price;
+  const unspent = Math.max(Number(input.replace(/\.$/, "")) - total, 0);
+  const ownership = property.total
+    ? ((fractions / property.total) * 100).toFixed(2)
+    : "0.00";
+
   const affordable = property.price
     ? Math.floor(Math.max(walletBalance - GAS_RESERVE, 0) / property.price)
     : 0;
-  const maxAmount = connected ? Math.min(available, affordable) : available;
-  const amount = Number(input);
-  const safeAmount = Number.isFinite(amount) ? amount : 0;
-  const clamp = (value: number) => Math.min(Math.max(value, 1), available);
-  const setAmount = (value: number) =>
-    setInput(String(clamp(Number.isFinite(value) ? value : 1)));
-  const total = safeAmount * property.price;
-  const ownership = property.total
-    ? ((safeAmount / property.total) * 100).toFixed(2)
-    : "0.00";
-  const invalid = safeAmount < 1 || safeAmount > available;
+  const maxFractions = connected ? Math.min(available, affordable) : available;
+
+  const setFractions = (value: number) => {
+    const next = Math.min(Math.max(value, 1), Math.max(available, 1));
+    setInput(formatEther(BigInt(next) * priceWei));
+  };
+
+  const invalid = fractions < 1 || fractions > available;
   const insufficient = connected && total > walletBalance;
   const disabled =
     connected && (busy || invalid || insufficient || cooldown > 0);
@@ -87,7 +108,8 @@ export function InvestPanel({
     if (!connected) return "Connect Wallet";
     if (busy) return "Processing Transaction...";
     if (cooldown > 0) return `Cooldown ${cooldown}s`;
-    if (invalid) return "Invalid Fraction Amount";
+    if (fractions < 1) return `Minimum ${formatEth(property.price)}`;
+    if (invalid) return "Not Enough Fractions Available";
     if (insufficient) return "Insufficient ETH Balance";
     return "Buy Property Fractions";
   };
@@ -96,7 +118,7 @@ export function InvestPanel({
     <Card className="flex w-full flex-col gap-6 p-7">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h3 className="text-2xl font-semibold tracking-tight">
-          Enter Fraction Amount
+          Enter ETH Amount
         </h3>
         <span className="flex items-center overflow-hidden rounded-full bg-canvas text-xs font-semibold">
           <span className="px-3 py-2 text-ink/55">Balance</span>
@@ -107,18 +129,18 @@ export function InvestPanel({
       </div>
 
       <div className="flex flex-wrap gap-2">
-        {PRESETS.map((preset) => (
+        {PRESET_FRACTIONS.map((preset) => (
           <Chip
             key={preset}
-            active={amount === preset}
-            onClick={() => setAmount(preset)}
+            active={fractions === preset}
+            onClick={() => setFractions(preset)}
           >
-            {preset} Fractions
+            {formatEther(BigInt(preset) * priceWei)} ETH
           </Chip>
         ))}
         <Chip
-          active={maxAmount > 0 && amount === maxAmount}
-          onClick={() => setAmount(maxAmount)}
+          active={maxFractions > 0 && fractions === maxFractions}
+          onClick={() => setFractions(maxFractions)}
         >
           Max
         </Chip>
@@ -127,42 +149,57 @@ export function InvestPanel({
       <div className="flex flex-col gap-3">
         <div className="flex items-end justify-between gap-4 border-b border-ink/15 pb-4">
           <input
-            type="number"
-            min={1}
-            max={available}
+            type="text"
+            inputMode="decimal"
             value={input}
-            onChange={(event) => setInput(event.target.value)}
-            onBlur={() => setAmount(invalid ? 1 : amount)}
-            className="w-full bg-transparent text-5xl font-semibold tracking-tight outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+            placeholder="0.0"
+            onChange={(event) => setInput(sanitizeEth(event.target.value))}
+            onBlur={() => fractions >= 1 && setFractions(fractions)}
+            className="w-full min-w-0 bg-transparent text-5xl font-semibold tracking-tight outline-none placeholder:text-ink/20"
           />
           <div className="flex shrink-0 items-center gap-2 pb-1">
-            <span className="flex items-center gap-2 rounded-full bg-canvas py-1.5 pl-2 pr-3.5 text-xs font-semibold text-ink/70">
+            <span className="flex items-center gap-1.5 rounded-full bg-canvas py-1.5 pl-2 pr-3.5 text-xs font-semibold text-ink/70">
               <Image
-                src="/assets/3d-bangunan.png"
+                src="/assets/eth-logo.svg"
                 alt=""
-                width={1371}
-                height={1147}
-                className="h-5 w-auto object-contain"
+                width={16}
+                height={16}
+                className="h-4 w-4"
               />
-              Fractions
+              ETH
             </span>
             <div className="flex flex-col overflow-hidden rounded-lg bg-canvas">
               <StepperButton
-                label="Increase fractions"
-                onClick={() => setAmount(safeAmount + 1)}
+                label="Increase amount"
+                onClick={() => setFractions(fractions + 1)}
               />
               <StepperButton
-                label="Decrease fractions"
+                label="Decrease amount"
                 rotated
-                onClick={() => setAmount(safeAmount - 1)}
+                onClick={() => setFractions(fractions - 1)}
               />
             </div>
           </div>
         </div>
         <div className="flex items-center justify-between text-sm text-ink/55">
-          <span>{formatEth(property.price)} per fraction</span>
+          <span className="flex items-center gap-2">
+            <Image
+              src="/assets/3d-bangunan.png"
+              alt=""
+              width={1371}
+              height={1147}
+              className="h-5 w-auto object-contain"
+            />
+            = {fractions} Fractions
+          </span>
           <span>≈ {ownership}% ownership</span>
         </div>
+        {fractions >= 1 && unspent > 0 ? (
+          <p className="text-xs text-ink/45">
+            Only whole fractions can be bought — {unspent.toFixed(6)} ETH stays
+            in your wallet.
+          </p>
+        ) : null}
       </div>
 
       <div className="mt-auto flex flex-col gap-5">
@@ -174,22 +211,21 @@ export function InvestPanel({
             </p>
           </div>
           <p className="text-xs text-ink/45">
-            My fractions {connected ? owned : 0} pcs
+            {formatEth(property.price)} per fraction · My fractions{" "}
+            {connected ? owned : 0} pcs
           </p>
         </div>
 
         <Button
           variant="blossom"
           disabled={disabled}
-          onClick={connected ? () => onBuy(amount) : openConnectModal}
+          onClick={connected ? () => onBuy(fractions) : openConnectModal}
           className="w-full py-4"
         >
           {buttonLabel()}
         </Button>
 
-        <p className="text-xs text-ink/50">
-          Status: {status || "Idle — ready to send a transaction to Arbitrum."}
-        </p>
+        {status ? <p className="text-xs text-ink/50">{status}</p> : null}
       </div>
     </Card>
   );
